@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <div data-controls>
+      <form
+        data-username-input
+        onsubmit="setUsername(this.elements['usr'], event)"
+      >
+        <label for="usr">Enter a username: </label>
+        <input name="usr" type="text" placeholder="Type a username" />
+      </form>
+      <form
+        data-message-input
+        style="display: none;"
+        onsubmit="sendMessage(this.elements['msg'], event)"
+      >
+        <label for="msg">Send message: </label>
+        <input name="msg" type="text" placeholder="Type a message" />
+      </form>
+
+    <div data-messages></div>
+
+    <script>
+      const client = io();
+      let username = '';
+
+      const sendMessage = (input, event) => {
+        event.preventDefault();
+        client.emit("new-message", input.value);
+        input.value = "";
+      };
+
+      const addMessage = (container, payload) => {
+        const user = payload.username;
+        const theMessage = payload.message;
+
+        const message = document.createElement("p");
+        message.innerText = `[${user}]: ${theMessage}`;
+        container.appendChild(`[${username}]: ${message}`)
+      };
+
+      client.on("new-message-ok", (newMessage) => {
+        addMessage(newMessage);
+      });
+
+      const setUsername = (input, event) => {
+        event.preventDefault();
+        username = input.value;
+        client.emit('set-username', username);
+        input.value = "";
+        document.querySelector('form[data-username-input]').style.display = 'none';
+        document.querySelector('form[data-message-input]').style.display = 'block';
+      }
+    </script>
+  </body>
+</html>
